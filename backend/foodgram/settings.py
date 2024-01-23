@@ -1,7 +1,9 @@
+import os
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -71,9 +73,21 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+# Использование PG для взрослого запуска.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+#         'HOST': os.getenv('DB_HOST', ''),
+#         'PORT': os.getenv('DB_PORT', 5432)
+#     }
+# }
 
 
 # Password validation
@@ -109,6 +123,8 @@ USE_L10N = True
 USE_TZ = True
 
 
+AUTH_USER_MODEL = 'users.User'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
@@ -117,4 +133,28 @@ STATIC_URL = '/static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/media/'
+
+STATIC_URL = '/static/django/'
+# Место в контейнере backend, где будет лежать статика, когда
+# ее соберем с помощью ./manage.py collectstatic
+STATIC_ROOT = '/app/static_django/'
+
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    # 'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+    }
+}
