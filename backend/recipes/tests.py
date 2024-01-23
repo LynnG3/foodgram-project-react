@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from models import Ingredient
+from .models import Ingredient
 # from users.models import User
 
 
