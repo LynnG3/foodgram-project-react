@@ -1,34 +1,62 @@
 from djoser.views import UserViewSet
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from api.serializers import FollowSerializer
+from rest_framework.decorators import action
+from rest_framework.permissions import (
+    IsAuthenticated,
+    AllowAny,
+    IsAuthenticatedOrReadOnly,
+    IsAdminUser
+)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (RecipeListSerializer,
                              RecipeCreateUpdateSerializer,
+                             ShowFollowerSerializer,
+                             CustomUserSerializer,
+                             IngredientSerializer,
                              TagSerializer)
-from recipes.models import Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 
-class CustomPagination(PageNumberPagination):
-    """Не забываем про паджинатор
-
-    Причем кастомный, т.к. там ожидается параметр limit."""
+class CommonPagination(PageNumberPagination):
+    """Пагинация."""
+    page_size = 6
     page_size_query_param = 'limit'
 
 
 class CustomUserViewSet(UserViewSet):
     """Api для работы с пользователями.
 
-    Там все, что нам нужно. CRUD + action me и прочее. См. исходники.
     """
+    pagination_class = CommonPagination
+    serializer_class = CustomUserSerializer
+
+    # def get_serializer_class(self):
+    #     if self.action == "create":
+    #         return CustomUserSerializer
+    #     return super().get_serializer_class()
+
+    @action(detail=False, permission_classes=[IsOwnerOrReadOnly])
+    def subscriptions(self, request):
+        """Просмотр подписок пользователя"""
+        subscriptions = self.request.user.following.all().order_by(
+            '-date_joined'
+        )
+        page = self.paginate_queryset(subscriptions)
+        serializer = ShowFollowerSerializer(
+            page,
+            many=True,
+            context={"request": request})
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipesViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    http_method_names = ['get', 'post', 'patch', ]
+    http_method_names = ['get', 'post', 'patch',]
     permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
-    pagination_class = CustomPagination
+    pagination_class = CommonPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -48,6 +76,11 @@ class RecipesViewSet(ModelViewSet):
             qs = qs.filter(author=author)
 
         return qs
+
+
+class IngredientViewSet(ModelViewSet):
+    serializer_class = IngredientSerializer
+    queryset = Ingredient.objects.all()
 
 
 class TagViewSet(ReadOnlyModelViewSet):

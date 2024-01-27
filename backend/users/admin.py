@@ -1,3 +1,16 @@
 from django.contrib import admin
+# from django.contrib.admin import register
 
-# Register your models here.
+from . import models
+
+
+# @register(models.CustomUser)
+# class UserAdmin(admin.ModelAdmin):
+#     list_display = ("id", "username", "first_name", "last_name", "email")
+#     search_fields = ("email", "username")
+#     list_filter = ("email", "username")
+#     empty_value_display = "-пусто-"
+
+
+admin.site.register(models.CustomUser)
+admin.site.register(models.Follow)

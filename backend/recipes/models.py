@@ -1,6 +1,7 @@
 from typing import Optional
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Exists, OuterRef
 
@@ -8,6 +9,7 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
+
     name = models.CharField(
         max_length=200,
         verbose_name='Название'
@@ -23,6 +25,20 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.measurement_unit})'
+
+
+class Tag(models.Model):
+    """Тэги."""
+    # Отображается в UI
+    name = models.CharField(
+        max_length=200, verbose_name='Название', unique=True
+    )
+    color = models.CharField(
+        max_length=200, null=True, verbose_name='Цвет', unique=True
+    )
+    slug = models.SlugField(
+        max_length=200, null=True, verbose_name='Слаг', unique=True
+    )
 
 
 class RecipeQuerySet(models.QuerySet):
@@ -48,12 +64,25 @@ class Recipe(models.Model):
         max_length=200,
         verbose_name='Название рецепта'
     )
+    # image = models.ImageField(
+    #     'Ссылка на изображение',
+    #     upload_to='recipes/images/'
+    # )
     text = models.TextField(verbose_name='Текст')
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
         through_fields=('recipe', 'ingredient'),
         verbose_name='Ингредиенты'
+    )
+    cooking_time = models.PositiveIntegerField(
+        'Время приготовления (в минутах)',
+        validators=[
+            MinValueValidator(
+                1,
+                'Время приготовления не может быть меньше 1 минуты'
+            )
+        ],
     )
     slug = models.SlugField(verbose_name='Слаг')
     pub_date = models.DateTimeField(
@@ -65,7 +94,7 @@ class Recipe(models.Model):
     objects = RecipeQuerySet.as_manager()
 
     class Meta:
-        ordering = ('-pub_date', )
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -122,17 +151,3 @@ class Favorite(models.Model):
         ]
         verbose_name = 'Объект избранного'
         verbose_name_plural = 'Объекты избранного'
-
-
-class Tag(models.Model):
-    """Тэги."""
-    # Отображается в UI
-    name = models.CharField(
-        max_length=200, verbose_name='Название', unique=True
-    )
-    color = models.CharField(
-        max_length=200, null=True, verbose_name='Цвет', unique=True
-    )
-    slug = models.SlugField(
-        max_length=200, null=True, verbose_name='Слаг', unique=True
-    )

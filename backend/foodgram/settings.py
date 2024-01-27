@@ -123,29 +123,28 @@ USE_L10N = True
 USE_TZ = True
 
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users.CustomUser'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_FILTER_BACKENDS":
+        ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/app/media/'
 
 STATIC_URL = '/static/django/'
-# Место в контейнере backend, где будет лежать статика, когда
-# ее соберем с помощью ./manage.py collectstatic
 STATIC_ROOT = '/app/static_django/'
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -153,6 +152,7 @@ STATIC_ROOT = '/app/static_django/'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     # 'HIDE_USERS': False,
+    # "SERIALIZERS":
     'PERMISSIONS': {
         'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
         'user_list': ['rest_framework.permissions.AllowAny'],
