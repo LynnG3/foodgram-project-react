@@ -21,6 +21,10 @@ class CustomUser(AbstractUser):
     # #     max_length=150,
     # #     blank=False
     # # )
+    # is_subscribed = models.BooleanField(
+    #     'Вы подписаны',
+    #     default=False
+    # )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
@@ -63,6 +67,10 @@ class Follow(models.Model):
             models.UniqueConstraint(
                 fields=["user", "author"],
                 name="unique_follow"),
+            models.CheckConstraint(
+                name="user_is_not_author",
+                check=~models.Q(user=models.F("author"))
+            ),
         ]
 
     def __str__(self):
