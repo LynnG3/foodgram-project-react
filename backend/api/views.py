@@ -10,7 +10,9 @@ from rest_framework.permissions import (
     AllowAny,
     IsAuthenticatedOrReadOnly,
 )
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
+from rest_framework.filters import SearchFilter
 
 from api.filters import IngredientSearchFilter, RecipesFilter
 
@@ -25,7 +27,12 @@ from api.serializers import (RecipeReadSerializer,
                              TagSerializer,
                              FavoriteSerializer,
                              ShoppingCartSerializer)
-from recipes.models import Ingredient, Recipe, Tag, Favorite, ShoppingCart
+from recipes.models import (Ingredient,
+                            Recipe,
+                            RecipeIngredient,
+                            Tag,
+                            Favorite,
+                            ShoppingCart)
 from users.models import CustomUser, Follow
 
 
@@ -95,14 +102,38 @@ class RecipeViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-
-    # @action(methods=["GET"], detail=False,
-    #         permission_classes=[IsAuthenticated])
-    # def download_shopping_cart(self, request):
-    #     """Скачивание списка покупок"""
+    @action(methods=["GET"], detail=False,
+            permission_classes=[IsAuthenticated])
+    def download_shopping_cart(self, request):
+        """Скачивание списка покупок"""
+        shopping_result = {}
+        ingredients = RecipeIngredient.objects.filter(
+            recipes__shopping_cart__user=request.user
+        ).values_list('ingredients__name',
+                      'ingredients__measurement_unit',
+                      'amount')
+        for ingredient in ingredients:
+            name = ingredient[0]
+            if name not in shopping_result:
+                shopping_result[name] = {
+                    'measurement_unit': ingredient[1],
+                    'amount': ingredient[2],
+                }
+            else:
+                shopping_result[name]['amount'] += ingredient[2]
+        shopping_itog = (
+            f"{name} - {value['amount']} " f"{value['measurement_unit']}\n"
+            for name, value in shopping_result.items()
+        )
+        response = HttpResponse(shopping_itog, content_type='text/plain')
+        response['Content-Disposition'] = \
+            'attachment; filename="shopping_cart.txt"'
+        return response
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
+    """ Представление ингредиентов. """
+
     filter_backends = [IngredientSearchFilter]
     search_fields = ['^name']
     serializer_class = IngredientSerializer
@@ -110,25 +141,48 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 
 class TagViewSet(ReadOnlyModelViewSet):
+    """ Представление тегов. """
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     pagination_class = None
 
 
-class FollowViewSet(ModelViewSet):
-    """ Создание и удаление подписки. """
+# class FollowViewSet(ModelViewSet):
+#     """ Создание и удаление подписки. """
+
+#     serializer_class = FollowSerializer
+#     pagination_class = CommonPagination
+#     permission_classes = [IsAuthenticated]
+
+#     def create(self, request, *args, **kwargs):
+#         """Создание подписки"""
+#         user_id = self.kwargs['id']
+#         user = get_object_or_404(CustomUser, id=user_id)
+#         subscribe = Follow.objects.create(user=request.user, author=user)
+#         serializer = FollowSerializer(subscribe, context={'request': request})
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+#     def delete(self, request, *args, **kwargs):
+#         """Удаление подписки"""
+#         author_id = self.kwargs['id']
+#         user_id = request.user.id
+#         Follow.objects.filter(user_id, author_id).delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FollowViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
+    """Вьюсет модели подписки."""
 
     serializer_class = FollowSerializer
-    pagination_class = CommonPagination
-    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ('user__username', 'author__username')
 
-    def create(self, request, *args, **kwargs):
-        """Создание подписки"""
-        user_id = self.kwargs['id']
-        user = get_object_or_404(CustomUser, id=user_id)
-        subscribe = Follow.objects.create(user=request.user, author=user)
-        serializer = FollowSerializer(subscribe, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        subscriptions = self.request.user.follower.all()
+        return subscriptions
 
     def delete(self, request, *args, **kwargs):
         """Удаление подписки"""

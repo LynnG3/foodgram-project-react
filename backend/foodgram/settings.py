@@ -151,7 +151,7 @@ STATIC_ROOT = '/app/static_django/'
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    # 'HIDE_USERS': False,
+    'HIDE_USERS': False,
     # "SERIALIZERS": {
     #     "user": "api.serializers.CustomUserGetSerializer",
     #     "current_user": "api.serializers.CustomUserSerializer",

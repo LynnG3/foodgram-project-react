@@ -208,6 +208,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 Tag,
                 name=tag_item["name"]
             )
+        # if len(tags) != len(set(tags)):
             if tag in tags_result:
                 raise serializers.ValidationError(
                     'Этот тег уже добавлен'
@@ -237,8 +238,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         image = validated_data.pop('image')
         ingredients_data = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(image=image, **validated_data)
-        tags = self.initial_data.get('tags')
-        recipe.tags.set(tags)
+        tags_data = validated_data.pop('tags')
+        image = validated_data.pop('tags')
+        recipe.tags.set(tags_data)
         self.create_ingredients_in_recipe(ingredients_data, recipe)
         return recipe
 
@@ -347,10 +349,17 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def validate(self, value):
         """
-        Проверка подписки на самого себя.
+        Проверка подписки на самого себя/на несуществующего автора.
         """
+        author = self.initial_data.get('author')
+        author = get_object_or_404(
+                Follow,
+                id=author["id"]
+            )
         if value['user'] == value['author']:
             raise ValidationError(['Нельзя подписаться на себя.'])
+        # elif not value['author'].exists():
+        
         return value
 
     def get_is_subscribed(self, obj):
