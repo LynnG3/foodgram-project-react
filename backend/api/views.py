@@ -15,12 +15,13 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from api.filters import IngredientSearchFilter, RecipesFilter
 
 from api.permissions import IsOwnerOrReadOnly, IsAdminUser
-from api.serializers import (RecipeListSerializer,
+from api.serializers import (RecipeReadSerializer,
                              FollowSerializer,
                              RecipeCreateUpdateSerializer,
                              CustomUserSerializer,
                              CustomUserGetSerializer,
                              IngredientSerializer,
+                             RecipeIngredientSerializer,
                              TagSerializer,
                              FavoriteSerializer,
                              ShoppingCartSerializer)
@@ -39,11 +40,10 @@ class CustomUserViewSet(UserViewSet):
 
     """
     pagination_class = CommonPagination
-    # serializer_class = CustomUserGetSerializer
     permission_classes = (AllowAny, )
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update", "delete"]:
+        if self.action in ['create', 'update', 'partial_update', 'delete']:
             return CustomUserSerializer
         elif self.request.method == 'GET':
             return CustomUserGetSerializer
@@ -54,18 +54,15 @@ class CustomUserViewSet(UserViewSet):
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
-    # @action(detail=False, permission_classes=[IsOwnerOrReadOnly])
-    # def subscriptions(self, request):
-    #     """Просмотр подписок пользователя"""
-    #     subscriptions = self.request.user.following.all().order_by(
-    #         '-date_joined'
-    #     )
-    #     page = self.paginate_queryset(subscriptions)
-    #     serializer = ShowFollowerSerializer(
-    #         page,
-    #         many=True,
-    #         context={"request": request})
-    #     return self.get_paginated_response(serializer.data)
+    @action(detail=False, permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
+        """Просмотр подписок пользователя"""
+        queryset = self.request.user.follower.all()
+        page = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(page,
+                                      many=True,
+                                      context={"request": request})
+        return self.get_paginated_response(serializer.data)
 
     # @action(detail=False, permission_classes=[IsAuthenticated])
     # def subscriptions(self, request):
@@ -78,30 +75,31 @@ class CustomUserViewSet(UserViewSet):
     #     return self.get_paginated_response(serializer.data)
 
 
-class RecipesViewSet(ModelViewSet):
+class RecipeViewSet(ModelViewSet):
+    """Получение списка рецептов/отдельного рецепта,
+    создание, редактирование, удаление своего рецепта. """
+
     queryset = Recipe.objects.all()
-    http_method_names = ['get', 'post', 'patch',]
-    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
+    # http_method_names = ['get', 'post', 'patch',]
+    permission_classes = [IsOwnerOrReadOnly]
     pagination_class = CommonPagination
+    filterset_class = RecipesFilter
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'update', 'partial_update', 'delete'):
+            return RecipeCreateUpdateSerializer
+        # elif self.request.method == 'GET':
+        #     return CustomUserGetSerializer
+        return RecipeReadSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def get_serializer_class(self):
-        if self.action in ('create', 'update', 'partial_update'):
-            return RecipeCreateUpdateSerializer
 
-        return RecipeListSerializer
-
-    def get_queryset(self):
-        qs = Recipe.objects.add_user_annotations(self.request.user.pk)
-
-        # Фильтры из GET-параметров запроса, например.
-        author = self.request.query_params.get('author', None)
-        if author:
-            qs = qs.filter(author=author)
-
-        return qs
+    # @action(methods=["GET"], detail=False,
+    #         permission_classes=[IsAuthenticated])
+    # def download_shopping_cart(self, request):
+    #     """Скачивание списка покупок"""
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -118,42 +116,40 @@ class TagViewSet(ReadOnlyModelViewSet):
 
 
 class FollowViewSet(ModelViewSet):
-    """ Создание и удаление подписки
-    """
+    """ Создание и удаление подписки. """
+
     serializer_class = FollowSerializer
     pagination_class = CommonPagination
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         """Создание подписки"""
-        user_id = self.kwargs["id"]
+        user_id = self.kwargs['id']
         user = get_object_or_404(CustomUser, id=user_id)
         subscribe = Follow.objects.create(user=request.user, author=user)
-        serializer = FollowSerializer(subscribe, context={"request": request})
+        serializer = FollowSerializer(subscribe, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
         """Удаление подписки"""
-        author_id = self.kwargs["id"]
+        author_id = self.kwargs['id']
         user_id = request.user.id
         Follow.objects.filter(user_id, author_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FavoriteViewSet(ModelViewSet):
-    """ViewSet Списки избранных рецептов
-    Добавление /
-    удаление из списка
+    """Cписок избранных рецептов
+    Добавление / удаление рецепта из списка.
     """
+
     serializer_class = FavoriteSerializer
     queryset = Favorite.objects.all()
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        """Добавление рецепта
-        в список избранного
-        """
-        recipes_id = self.kwargs["id"]
+        """Добавление рецепта в список избранного. """
+        recipes_id = self.kwargs['id']
         recipes = get_object_or_404(Recipe, id=recipes_id)
         Favorite.objects.create(user=request.user, recipes=recipes)
         serializer = FavoriteSerializer()
@@ -180,15 +176,15 @@ class ShoppingCartViewSet(ModelViewSet):
     удаление рецепта из списка покупок /
     скачивание списка покупок
     """
+
     serializer_class = ShoppingCartSerializer
     pagination_class = CommonPagination
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        """Добавление рецепта в список покупок
-        """
-        recipe_id = self.kwargs["id"]
+        """Добавление рецепта в список покупок. """
+        recipe_id = self.kwargs['id']
         recipes = get_object_or_404(Recipe, id=recipe_id)
         ShoppingCart.objects.create(user=request.user, recipes=recipes)
         serializer = ShoppingCartSerializer()

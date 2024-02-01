@@ -5,7 +5,7 @@ from django.db import models
 class CustomUser(AbstractUser):
     "Кастомная модель пользователя."
 
-    # id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     email = models.EmailField(
         'Электронная почта',
         blank=False,
@@ -46,30 +46,31 @@ class CustomUser(AbstractUser):
 
 class Follow(models.Model):
     """Модель подписки"""
+
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         CustomUser,
-        verbose_name="Подписчик",
         on_delete=models.CASCADE,
-        related_name="follower",
+        related_name='follower',
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         CustomUser,
-        verbose_name="Автор",
         on_delete=models.CASCADE,
-        related_name="following",
+        related_name="author",
+        verbose_name="Автор"
     )
 
     class Meta:
-        verbose_name = "Подписка"
-        verbose_name_plural = "Подписки"
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "author"],
-                name="unique_follow"),
+                fields=['user', 'author'],
+                name='unique_follow'),
             models.CheckConstraint(
-                name="user_is_not_author",
-                check=~models.Q(user=models.F("author"))
+                name='user_is_not_author',
+                check=~models.Q(user=models.F('author'))
             ),
         ]
 
