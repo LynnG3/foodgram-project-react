@@ -57,8 +57,8 @@ class Follow(models.Model):
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name="author",
-        verbose_name="Автор"
+        related_name='author',
+        verbose_name='Автор'
     )
 
     class Meta:

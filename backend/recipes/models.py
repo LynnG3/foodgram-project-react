@@ -1,5 +1,4 @@
 from typing import Optional
-from drf_extra_fields.fields import Base64ImageField
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
@@ -89,7 +88,9 @@ class Recipe(models.Model):
             )
         ],
     )
-    slug = models.SlugField(verbose_name='Слаг')
+    tags = models.ManyToManyField(
+        Tag, related_name="recipes"
+    )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
@@ -105,6 +106,21 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class TagsInRecipe(models.Model):
+
+    tag = models.ForeignKey(
+        Tag, verbose_name="Тег в рецепте", on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = "Теги в рецепте"
+        verbose_name_plural = verbose_name
 
 
 class RecipeIngredient(models.Model):
@@ -131,19 +147,17 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    id = models.AutoField(primary_key=True)
+    # id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='favorite',
         verbose_name='Пользователь'
     )
-    recipes = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         null=True,
         default=None,
-        related_name='favorite',
         verbose_name='Рецепт'
     )
 
@@ -153,34 +167,38 @@ class Favorite(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'recipes'),
-                name='unique_favorite_user_recipes'
+                fields=('user', 'recipe'),
+                name='unique_favorite_user_recipe'
             )
         ]
+        default_related_name = 'favorite'
         verbose_name = 'Объект избранного'
         verbose_name_plural = 'Объекты избранного'
 
 
 class ShoppingCart(models.Model):
     """Модель Список покупок"""
-    id = models.AutoField(primary_key=True)
+    # id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        verbose_name="Пользователь"
+        verbose_name='Пользователь'
     )
-    recipes = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
-        verbose_name="Рецепт",
+        null=True,
+        default=None,
+        verbose_name='Рецепт',
         on_delete=models.CASCADE
     )
 
     class Meta:
+        default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipes'], name='unique_recipes_list'
+                fields=('user', 'recipe'), name='unique_recipe_list'
             )
         ]
 
