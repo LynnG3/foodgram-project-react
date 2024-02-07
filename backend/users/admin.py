@@ -1,7 +1,9 @@
 from django.contrib import admin
-# from django.contrib.admin import register
 
 from . import models
+
+# from django.contrib.admin import register
+
 
 
 # @register(models.CustomUser)

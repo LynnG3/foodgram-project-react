@@ -14,3 +14,5 @@ pytz==2020.4
 sqlparse==0.4.1
 django-filter==2.3.0
 djoser==2.1.0
+python-dotenv==1.0.1
+isort==5.13.2
