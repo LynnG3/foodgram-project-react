@@ -14,8 +14,6 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    # image: linorra/foodgram_backend -названия контейнеров с докерхаба
-    # это для соседнего файла docker-compose.production.yml, вместо build: ./backend/
     image: linorra/infra-backend-1
     env_file: ../.env
     volumes:
@@ -25,19 +23,16 @@ services:
       - db
   
 
-  # frontend: было в прошлом спринте
   frontend:
     env_file: .env
     image: linorra/infra_frontend-1
     command: cp -r /app/build/. /static/
     volumes:
       - ../frontend/:/app/result_build/
-  #   volumes:
-  #     - static:/static
+
   
   nginx:
     image: nginx:1.19.3
-    # image: linorra/infra_nginx-1
     ports:
     - "8000:80"
     volumes:

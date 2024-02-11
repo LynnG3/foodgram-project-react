@@ -4,8 +4,6 @@ from . import models
 
 # from django.contrib.admin import register
 
-
-
 # @register(models.CustomUser)
 # class UserAdmin(admin.ModelAdmin):
 #     list_display = ("id", "username", "first_name", "last_name", "email")

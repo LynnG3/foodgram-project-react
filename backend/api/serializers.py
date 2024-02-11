@@ -1,19 +1,13 @@
 import re
 
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from djoser.serializers import UserSerializer, UserCreateSerializer
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.serializers import ValidationError
-from rest_framework.serializers import SerializerMethodField
 from rest_framework.authtoken.models import Token
-
-from recipes.models import (Ingredient,
-                            RecipeIngredient,
-                            Recipe,
-                            Tag,
-                            Favorite,
-                            ShoppingCart)
+from rest_framework.serializers import SerializerMethodField, ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 from users.models import CustomUser, Follow
 
 
@@ -132,7 +126,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         """Получение ингредиентов. Возвращает отдельный сериализатор."""
         return RecipeIngredientSerializer(
             RecipeIngredient.objects.filter(recipe=obj), many=True
-            ).data
+        ).data
 
     def get_is_favorited(self, obj):
         """Получение избранных рецептов."""
@@ -192,15 +186,15 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'cooking_time',
             'is_favorited',
             'is_in_shopping_cart'
-            )
+        )
 
     def validate(self, data):
         """Метод валидации данных перед созданием рецепта."""
         image = data.get('image')
         if not image:
             raise serializers.ValidationError(
-                    {'Добавьте фото'}
-                )
+                {'Добавьте фото'}
+            )
         data['image'] = image
         required_fields = ['name']
         for field in required_fields:
@@ -283,7 +277,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             instance,
             context={'request':
                      self.context['request']}
-            ).data
+        ).data
 
 
 class UsersRecipeSerializer(serializers.ModelSerializer):
@@ -332,7 +326,9 @@ class FollowReadSerializer(serializers.ModelSerializer):
         if request is None or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=obj.id, author=obj.id).exists()
-        # return Follow.objects.filter(user=self.context['request'].user, author=obj).exists()
+        # return Follow.objects.filter(
+        #   user=self.context['request'].user, author=obj
+        #   ).exists()
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов автора"""
@@ -404,7 +400,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
             recipe_instance,
             context={'request':
                      self.context['request']}
-            ).data
+        ).data
 
 
 class ShoppingCartSerializer(FavoriteSerializer):
