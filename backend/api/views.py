@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -34,7 +35,7 @@ class CustomUserViewSet(UserViewSet):
 
     """
     pagination_class = CommonPagination
-    permission_classes = (AllowAny, )
+    permission_classes = [AllowAny, ]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'delete']:
@@ -89,10 +90,11 @@ class CustomUserViewSet(UserViewSet):
             )
 
     @action(
-        methods=["get", "post"],
+        methods=['get', 'post'],
         detail=False,
         permission_classes=[IsAuthenticated],
-        # pagination_class=CommonPagination
+        serializer_class=FollowReadSerializer,
+        # pagination_class=LimitOffsetPagination
     )
     def subscriptions(self, request):
         """Просмотр подписок пользователя.
@@ -100,24 +102,19 @@ class CustomUserViewSet(UserViewSet):
         """
         user = request.user
         follow = Follow.objects.filter(user=user)
-        user_obj = []
-        for follow_obj in follow:
-            user_obj.append(follow_obj.author)
-        limit = request.GET.get('recipes_limit', None)
-        page = self.paginate_queryset(user_obj)
-        if page:
-            serializer = FollowReadSerializer(
-                page,
-                many=True,
-                context={'recipes_limit': limit}
-            )
-            return self.get_paginated_response(serializer.data)
-        serializer = FollowReadSerializer(
-            follow,
-            many=True,
-            context={'recipes_limit': limit}
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user_obj = [follow_obj.author.id for follow_obj in follow]
+
+        queryset = CustomUser.objects.filter(pk__in=user_obj)
+        paginated_queryset = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(paginated_queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+        # limit = request.query_params.get('recipes_limit', None)
+        # if limit:
+        #     queryset = queryset[:int(limit)]
+        # serializer = self.get_serializer(queryset, many=True)
+        # if limit:
+        #     return self.get_paginated_response(serializer.data)
+        # return Response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -125,7 +122,6 @@ class RecipeViewSet(ModelViewSet):
     создание, редактирование, удаление своего рецепта. """
 
     queryset = Recipe.objects.all()
-    # http_method_names = ['get', 'post', 'patch',]
     permission_classes = [IsOwnerOrReadOnly]
     pagination_class = CommonPagination
     filterset_class = RecipesFilter
@@ -144,8 +140,11 @@ class RecipeViewSet(ModelViewSet):
         # if self.request.user.is_authenticated:
         serializer.save(author=self.request.user)
 
-    @action(methods=["GET"], detail=False,
-            permission_classes=[IsAuthenticated])
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
         """Скачивание списка покупок"""
         shopping_result = {}
@@ -188,27 +187,6 @@ class TagViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     pagination_class = None
 
-
-# class FollowViewSet(ListModelMixin, CreateModelMixin, GenericViewSet):
-#     """Вьюсет модели подписки."""
-
-#     serializer_class = FollowSerializer
-#     filter_backends = [SearchFilter]
-#     search_fields = ('user__username', 'author__username')
-
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
-
-#     def get_queryset(self):
-#         subscriptions = self.request.user.follower.all()
-#         return subscriptions
-
-#     def delete(self, request, *args, **kwargs):
-#         """Удаление подписки"""
-#         author_id = self.kwargs['id']
-#         user_id = request.user.id
-#         Follow.objects.filter(user_id, author_id).delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class RecipeNotFoundException(APIException):
     """Исключение для несуществующего рецепта. """

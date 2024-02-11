@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -74,24 +75,24 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-# Использование PG для взрослого запуска.
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),
-#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-#         'HOST': os.getenv('DB_HOST', ''),
-#         'PORT': os.getenv('DB_PORT', 5432)
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
+
+# Использование PG для взрослого запуска.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', 5432)
+    }
+}
 
 
 # Password validation
@@ -143,15 +144,17 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_FILTER_BACKENDS":
         ["django_filters.rest_framework.DjangoFilterBackend"],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
 }
 
 MEDIA_URL = '/media/'
 
-# MEDIA_ROOT = '/app/media/'
+MEDIA_ROOT = '/app/media/'
 
-STATIC_URL = '/static/'
-# STATIC_URL = '/static/django/'
-# STATIC_ROOT = '/app/static_django/'
+# STATIC_URL = '/static/'
+STATIC_URL = '/static/django/'
+STATIC_ROOT = '/app/static_django/'
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -161,5 +164,10 @@ DJOSER = {
     'PERMISSIONS': {
         'user': ("rest_framework.permissions.IsAuthenticated",),
         'user_list': ['rest_framework.permissions.AllowAny'],
-    }
+    },
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+    },
 }

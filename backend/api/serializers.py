@@ -1,9 +1,7 @@
 import re
-import base64
 
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer, UserCreateSerializer
-from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.serializers import ValidationError
@@ -120,19 +118,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'amount', 'measurement_unit')
 
 
-# class Base64ImageField(serializers.ImageField):
-#     def to_internal_value(self, base64_data):
-#         if isinstance(base64_data, str) and base64_data.startswith('data:image'):
-#             format_, imgstr = base64_data.split(';base64,')
-#             ext = format_.split('/')[-1]
-#             data = ContentFile(base64.b64decode(imgstr), name=f'image.{ext}')
-#             return super().to_internal_value(data)
-#         else:
-#             raise serializers.ValidationError(
-#                 {'Недопустимый формат изображения'}
-#             )
-
-
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Получение рецепта."""
 
@@ -158,7 +143,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return Favorite.objects.filter(recipe=obj, user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        """Получение списка полкупок."""
+        """Получение списка покупок."""
         request = self.context.get("request")
         if request is None or request.user.is_anonymous:
             return False
@@ -316,7 +301,8 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписки."""
 
-    recipes = UsersRecipeSerializer(many=True)
+    # recipes = UsersRecipeSerializer(many=True)
+    recipes = serializers.SerializerMethodField('get_recipes')
     is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
     recipes_count = serializers.SerializerMethodField('get_recipes_count')
 
@@ -333,17 +319,25 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'recipes_count',
         )
 
+    def get_recipes(self, obj):
+        recipes = Recipe.objects.filter(author=obj)
+        if 'recipes_limit' in self.context.get('request').GET:
+            recipes_limit = self.context.get('request').GET['recipes_limit']
+            recipes = recipes[:int(recipes_limit)]
+        return UsersRecipeSerializer(recipes, many=True).data
+
     def get_is_subscribed(self, obj):
         """Проверка подписки текущего юзера на автора. """
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=obj.id, author=obj.id).exists()
+        # return Follow.objects.filter(user=self.context['request'].user, author=obj).exists()
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов автора"""
-
-        return obj.recipes.all().count()
+        return obj.recipes.count()
+        # return obj.recipes.all().count()
         # return Recipe.objects.filter(author=obj.author).count()
 
 
@@ -373,10 +367,6 @@ class FollowSerializer(serializers.ModelSerializer):
         """
         user = value.get('user')
         author = value.get('author')
-        # author = get_object_or_404(
-        #         Follow,
-        #         id=author["id"]
-        #     )
         if user == author:
             raise ValidationError(['Нельзя подписаться на себя.'])
         return value
@@ -387,7 +377,7 @@ class FollowSerializer(serializers.ModelSerializer):
             instance.author,
             context={'request':
                      self.context['request']}
-            ).data
+        ).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -405,7 +395,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
         validators = UniqueTogetherValidator(
             queryset=Favorite.objects.all(), fields=('user', 'recipe')
-            )
+        )
 
     def to_representation(self, instance):
         """Определяет сериализатор для чтения."""
