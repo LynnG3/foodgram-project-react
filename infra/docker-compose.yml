@@ -9,15 +9,15 @@ volumes:
 services:
   db:
     image: postgres:13.10
-    env_file: ../.env
+    env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   backend:
     # image: linorra/foodgram_backend -названия контейнеров с докерхаба
     # это для соседнего файла docker-compose.production.yml, вместо build: ./backend/
-    build: ../backend/
-    env_file: ../.env
+    build: ./backend/
+    env_file: .env
     volumes:
       - static:/app/static_django/
       - media:/app/media/
@@ -28,10 +28,10 @@ services:
     # image: linorra/foodgram_frontend -названия контейнеров с докерхаба
     # это для соседнего файла docker-compose.production.yml, вместо build: 
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ../frontend/:/app/result_build/
+      - ./frontend/:/app/result_build/
 
   # frontend: было в прошлом спринте
   #   env_file: .env
@@ -53,8 +53,8 @@ services:
       # Директории в контейнере nginx, где будут лежать файлы backend.
       - static:/static_django/
       - media:/media/
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ./frontend/build:/usr/share/nginx/html/
+      - ./docs/:/usr/share/nginx/html/api/docs/
 
     depends_on:
       - backend
