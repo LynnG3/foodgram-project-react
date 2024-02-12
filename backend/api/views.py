@@ -6,6 +6,7 @@ from api.serializers import (CustomUserGetSerializer, CustomUserSerializer,
                              RecipeCreateUpdateSerializer,
                              RecipeReadSerializer, ShoppingCartSerializer,
                              TagSerializer)
+from django.db.models import OuterRef, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -102,17 +103,27 @@ class CustomUserViewSet(UserViewSet):
         follow = Follow.objects.filter(user=user)
         user_obj = [follow_obj.author.id for follow_obj in follow]
 
-        queryset = CustomUser.objects.filter(pk__in=user_obj)
+        recipes_limit = request.GET.get('recipes_limit', None)
+        if recipes_limit is None:
+            queryset = CustomUser.objects.filter(pk__in=user_obj)
+        limited_recipes = Recipe.objects.filter(
+            author=OuterRef('pk')
+        ).order_by('-created_at')[:recipes_limit]
+        queryset = (
+            CustomUser.objects
+            .filter(pk__in=user_obj)
+            .prefetch_related(
+                Prefetch(
+                    'recipes',
+                    queryset=limited_recipes,
+                    to_attr='limited_recipes'
+                )
+            )
+        )
+        # queryset = CustomUser.objects.filter(pk__in=user_obj)
         paginated_queryset = self.paginate_queryset(queryset)
         serializer = self.get_serializer(paginated_queryset, many=True)
         return self.get_paginated_response(serializer.data)
-        # limit = request.query_params.get('recipes_limit', None)
-        # if limit:
-        #     queryset = queryset[:int(limit)]
-        # serializer = self.get_serializer(queryset, many=True)
-        # if limit:
-        #     return self.get_paginated_response(serializer.data)
-        # return Response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):

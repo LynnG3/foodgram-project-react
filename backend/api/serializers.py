@@ -295,8 +295,9 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписки."""
 
-    # recipes = UsersRecipeSerializer(many=True)
-    recipes = serializers.SerializerMethodField('get_recipes')
+    recipes = UsersRecipeSerializer(many=True)
+    # recipes = serializers.SerializerMethodField('get_recipes')
+    limited_recipes = serializers.SerializerMethodField('get_windowed_recipes')
     is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
     recipes_count = serializers.SerializerMethodField('get_recipes_count')
 
@@ -311,14 +312,18 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'is_subscribed',
             'recipes',
             'recipes_count',
+            'limited_recipes'
         )
 
-    def get_recipes(self, obj):
-        recipes = Recipe.objects.filter(author=obj)
-        if 'recipes_limit' in self.context.get('request').GET:
-            recipes_limit = self.context.get('request').GET['recipes_limit']
-            recipes = recipes[:int(recipes_limit)]
+    def get_windowed_recipes(self, obj):
+        recipes = getattr(obj, 'limited_recipes', [])
+        # recipes = Recipe.objects.filter(author=obj)
+        # if 'recipes_limit' in self.context.get('request').GET:
+        #     recipes_limit = self.context.get('request').GET['recipes_limit']
         return UsersRecipeSerializer(recipes, many=True).data
+        #     return recipes_limit
+        #     recipes = recipes[:int(recipes_limit)]
+        # return UsersRecipeSerializer(recipes, many=True).data
 
     def get_is_subscribed(self, obj):
         """Проверка подписки текущего юзера на автора. """
