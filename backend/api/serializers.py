@@ -315,12 +315,14 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'limited_recipes'
         )
 
-    # def get_windowed_recipes(self, obj):
-    #     recipes = getattr(obj, 'limited_recipes', [])
+    # # def get_windowed_recipes(self, obj):
+    # #     recipes = getattr(obj, 'limited_recipes', [])
     #     # recipes = Recipe.objects.filter(author=obj)
     #     # if 'recipes_limit' in self.context.get('request').GET:
-    #     #     recipes_limit = self.context.get('request').GET['recipes_limit']
-    #     return UsersRecipeSerializer(recipes, many=True).data
+    #     #     recipes_limit = self.context.get(
+    #               'request'
+    #              ).GET['recipes_limit']
+    #       return UsersRecipeSerializer(recipes, many=True).data
     #     #     return recipes_limit
     #     #     recipes = recipes[:int(recipes_limit)]
     #     # return UsersRecipeSerializer(recipes, many=True).data
