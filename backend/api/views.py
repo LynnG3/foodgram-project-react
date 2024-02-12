@@ -1,17 +1,7 @@
-from api.filters import IngredientSearchFilter, RecipesFilter
-from api.permissions import IsOwnerOrReadOnly
-from api.serializers import (CustomUserGetSerializer, CustomUserSerializer,
-                             FavoriteSerializer, FollowReadSerializer,
-                             FollowSerializer, IngredientSerializer,
-                             RecipeCreateUpdateSerializer,
-                             RecipeReadSerializer, ShoppingCartSerializer,
-                             TagSerializer)
 from django.db.models import OuterRef, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
@@ -20,6 +10,17 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
+from api.filters import IngredientSearchFilter, RecipesFilter
+from api.permissions import IsOwnerOrReadOnly
+from api.serializers import (CustomUserGetSerializer, CustomUserSerializer,
+                             FavoriteSerializer, FollowReadSerializer,
+                             FollowSerializer, IngredientSerializer,
+                             RecipeCreateUpdateSerializer,
+                             RecipeReadSerializer, ShoppingCartSerializer,
+                             TagSerializer)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import CustomUser, Follow
 
 
