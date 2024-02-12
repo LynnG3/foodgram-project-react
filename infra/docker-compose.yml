@@ -48,7 +48,7 @@ services:
       # Для взрослого запуска! .
     - "8000:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       # Именнованные тома, которые будут доступны в backend
       # Директории в контейнере nginx, где будут лежать файлы backend.
       - static:/static_django/
