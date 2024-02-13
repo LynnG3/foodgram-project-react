@@ -14,7 +14,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    image: linorra/infra-backend-1
+    image: linorra/infra_backend-1
     env_file: .env
     volumes:
       - static:/app/static_django/
