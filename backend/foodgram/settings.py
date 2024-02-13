@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure123456')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split()
 
@@ -155,7 +155,7 @@ MEDIA_ROOT = '/app/media/'
 STATIC_URL = '/static/django/'
 STATIC_ROOT = '/app/static_django/'
 
-STATICFILES_DIRS = ((BASE_DIR / 'data/'), )
+STATICFILES_DIRS = (BASE_DIR / 'data/')
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
