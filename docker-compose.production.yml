@@ -20,7 +20,7 @@ services:
       # - static:/app/static_django/
       - static:/static_django/
       - media:/app/media/
-      # - redoc:/app/docs/
+      - redoc:/app/docs/
     depends_on:
       - db
   
