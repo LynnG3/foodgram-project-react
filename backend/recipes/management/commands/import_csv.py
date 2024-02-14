@@ -6,8 +6,8 @@ from django.core.management.base import BaseCommand
 from recipes.models import Ingredient, Tag
 
 DICT_MODELS_RECIPES = {
-    Tag: settings.STATICFILES_DIRS / 'data/ingredients.csv',
-    Ingredient: settings.STATICFILES_DIRS / 'data/tags.csv',
+    Ingredient: settings.STATICFILES_DIRS / 'data/ingredients.csv',
+    Tag: settings.STATICFILES_DIRS / 'data/tags.csv',
 }
 
 
