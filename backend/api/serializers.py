@@ -1,3 +1,4 @@
+'''Сериализатор для приложений recipes и users. '''
 import re
 
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -42,7 +43,8 @@ class CustomUserSerializer(UserCreateSerializer):
 
 
 class CustomUserGetSerializer(UserSerializer):
-    """Сериализатор для просмотра пользователя и списка пользолвателей"""
+    """Сериализатор для просмотра пользователя и списка пользователей. """
+
     is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
@@ -65,6 +67,8 @@ class CustomUserGetSerializer(UserSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
+    """Сериализатор сменя пароля. """
+
     new_password = serializers.CharField(required=True)
     current_password = serializers.CharField(required=True)
 
@@ -74,6 +78,8 @@ class PasswordSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
+    """Сериализатор получения токена. """
+
     token = serializers.CharField(source='key')
 
     class Meta:
@@ -82,6 +88,7 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор тега. """
 
     class Meta:
         model = Tag
@@ -89,6 +96,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор ингредиента. """
 
     class Meta:
         model = Ingredient
@@ -315,18 +323,6 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'recipes_count',
             'limited_recipes'
         )
-
-    # # def get_windowed_recipes(self, obj):
-    # #     recipes = getattr(obj, 'limited_recipes', [])
-    #     # recipes = Recipe.objects.filter(author=obj)
-    #     # if 'recipes_limit' in self.context.get('request').GET:
-    #     #     recipes_limit = self.context.get(
-    #               'request'
-    #              ).GET['recipes_limit']
-    #       return UsersRecipeSerializer(recipes, many=True).data
-    #     #     return recipes_limit
-    #     #     recipes = recipes[:int(recipes_limit)]
-    #     # return UsersRecipeSerializer(recipes, many=True).data
 
     def get_is_subscribed(self, obj):
         """Проверка подписки текущего юзера на автора. """
