@@ -36,12 +36,3 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             'Все данные успешно загружены в базу данных!'
         ))
-
-# class Command(BaseCommand):
-#     def handle(self, **options):
-#         with open("ingredients.csv") as f:
-#             for line in f:
-#                 ing = line.split(',')
-#                 Ingredient.objects.get_or_create(
-#                     name=ing[0], measurement_unit=ing[1]
-#                 )
