@@ -125,11 +125,13 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = '/app/media/'
+# MEDIA_ROOT = '/app/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# STATIC_URL = '/static/'
-STATIC_URL = '/static/django/'
-STATIC_ROOT = '/app/static_django/'
+STATIC_URL = '/static/'
+# STATIC_URL = '/static/django/'
+# STATIC_ROOT = '/app/static_django/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'data'),)
 
