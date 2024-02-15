@@ -23,10 +23,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
     'djoser',
     'django_filters',
+    'rest_framework',
+    'rest_framework.authtoken',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
@@ -72,8 +72,8 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'postgres'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'NAME': os.getenv('POSTGRES_DB', 'foodgram'),
+        'USER': os.getenv('POSTGRES_USER', 'foodgram_user'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
@@ -131,7 +131,7 @@ MEDIA_ROOT = '/app/media/'
 STATIC_URL = '/static/'
 # STATIC_URL = '/static/django/'
 STATIC_ROOT = '/app/collected_static/'
-# STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = BASE_DIR / 'collected_static'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'data'),)
 
