@@ -17,8 +17,8 @@ services:
     image: linorra/infra_backend-1
     env_file: .env
     volumes:
-      # - static:/app/static_django/
-      - static:/static_django/
+      - static:/app/static_django/
+      # - static:/static_django/
       - media:/app/media/
       - redoc:/app/docs/
     depends_on:
