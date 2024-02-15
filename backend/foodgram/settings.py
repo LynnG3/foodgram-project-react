@@ -129,7 +129,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_URL = '/static/'
-# STATIC_URL = '/static/django/'
 # STATIC_ROOT = '/app/collected_static/'
 # STATIC_ROOT = BASE_DIR / 'collected_static'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
