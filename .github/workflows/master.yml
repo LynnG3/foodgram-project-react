@@ -143,5 +143,5 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Приятного аппетита:) Деплой foodgram успешно выполнен! ${{ github.event.head_commit.url }}.
+        message: Приятного аппетита:) Деплой foodgram успешно выполнен!
     
