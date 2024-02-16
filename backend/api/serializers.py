@@ -106,10 +106,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиента в рецепте."""
 
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient',
-        queryset=Ingredient.objects.all()
-    )
+    # id = serializers.PrimaryKeyRelatedField(
+    #     source='ingredient',
+    #     queryset=Ingredient.objects.all()
+    # )
+    id = serializers.IntegerField()
     name = serializers.CharField(source='ingredient.name', read_only=True)
     measurement_unit = serializers.CharField(
         source="ingredient.measurement_unit", read_only=True
@@ -174,8 +175,12 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     ingredients = RecipeIngredientSerializer(many=True)
     image = Base64ImageField()
-    tags = serializers.SlugRelatedField(
-        many=True, queryset=Tag.objects.all(), slug_field="id"
+    # tags = serializers.SlugRelatedField(
+    #     many=True, queryset=Tag.objects.all(), slug_field="id"
+    # )
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
     )
     author = CustomUserSerializer(read_only=True)
     cooking_time = serializers.IntegerField(min_value=1)

@@ -147,7 +147,8 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    # id = models.AutoField(primary_key=True)
+    """Модель избранных рецептов. """
+
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
@@ -178,7 +179,7 @@ class Favorite(models.Model):
 
 class ShoppingCart(models.Model):
     """Модель Список покупок"""
-    # id = models.AutoField(primary_key=True)
+
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,

@@ -1,5 +1,5 @@
+from django.http import FileResponse
 from django.db.models import OuterRef, Prefetch
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -156,7 +156,7 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        """Скачивание списка покупок"""
+        """Подсчет и скачивание списка покупок. """
         shopping_result = {}
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user
@@ -176,9 +176,15 @@ class RecipeViewSet(ModelViewSet):
             f"{name} - {value['amount']} " f"{value['measurement_unit']}\n"
             for name, value in shopping_result.items()
         )
-        response = HttpResponse(shopping_itog, content_type='text/plain')
-        response['Content-Disposition'] = \
-            'attachment; filename="shopping_cart.txt"'
+        response = FileResponse(
+            shopping_itog,
+            content_type='text/plain',
+            as_attachment=True,
+            filename='Список покупок.txt'
+        )
+        # HttpResponse(shopping_itog, content_type='text/plain')
+        # response['Content-Disposition'] = \
+        #     'attachment; filename="Список покупок.txt"'
         return response
 
 
