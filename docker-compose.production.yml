@@ -41,7 +41,7 @@ services:
       - static:/staticfiles/
       - media:/app/media/
       # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      # - ./frontend/build:/usr/share/nginx/html/
+      - ./frontend/build:/usr/share/nginx/html/
       # - static_frontend:/static_frontend/
       # - ./docs/:/usr/share/nginx/html/api/docs/
       # - redoc:/usr/share/nginx/html/api/docs/
