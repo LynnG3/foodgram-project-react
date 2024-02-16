@@ -78,8 +78,8 @@ jobs:
             push: true
             tags: linorra/infra_frontend-1:latest
   
-  build_nginx_and_push_to_docker_hub:
-    name: Push nginx Docker image to DockerHub
+  build_gateway_and_push_to_docker_hub:
+    name: Push gateway Docker image to DockerHub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -96,14 +96,14 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: linorra/infra_nginx-1:latest
+          tags: linorra/infra_gateway-1:latest
 
   deploy:
     runs-on: ubuntu-latest
     needs: 
       - build_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
-      - build_nginx_and_push_to_docker_hub
+      - build_gateway_and_push_to_docker_hub
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout repo

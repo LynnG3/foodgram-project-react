@@ -33,18 +33,32 @@ services:
     depends_on:
       - db
 
-  nginx:
-    image: nginx:1.19.3
-    ports:
-    - "8000:80"
+  # nginx:
+  #   image: nginx:1.19.3
+  #   ports:
+  #   - "8000:80"
+  #   volumes:
+  #     - static:/staticfiles/
+  #     - media:/app/media/
+  #     # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./frontend/build:/usr/share/nginx/html/
+  #     # - static_frontend:/static_frontend/
+  #     # - ./docs/:/usr/share/nginx/html/api/docs/
+  #     # - redoc:/usr/share/nginx/html/api/docs/
+
+  #   depends_on:
+  #     - backend
+
+  gateway:
+    image: linorra/infra_gateway-1
+    env_file: .env
     volumes:
       - static:/staticfiles/
       - media:/app/media/
-      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./frontend/build:/usr/share/nginx/html/
-      # - static_frontend:/static_frontend/
-      # - ./docs/:/usr/share/nginx/html/api/docs/
-      # - redoc:/usr/share/nginx/html/api/docs/
-
+      - ./docs/:/usr/share/nginx/html/api/docs/
+      - redoc:/usr/share/nginx/html/api/docs/
+    ports:
+      - 8000:80
     depends_on:
       - backend
+      - frontend
