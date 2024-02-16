@@ -28,7 +28,7 @@ services:
     env_file: .env
     command: cp -r /app/build/. /result_build/
     volumes:
-      - static_frontend:/result_build/
+      - static:/result_build/
       # - ./frontend/:/app/result_build/
     depends_on:
       - db
@@ -42,7 +42,7 @@ services:
       - media:/app/media/
       # - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       # - ./frontend/build:/usr/share/nginx/html/
-      - static_frontend:/static_frontend/
+      # - static_frontend:/static_frontend/
       # - ./docs/:/usr/share/nginx/html/api/docs/
       # - redoc:/usr/share/nginx/html/api/docs/
 
