@@ -100,39 +100,18 @@ class CustomUserViewSet(UserViewSet):
         """Просмотр подписок пользователя.
         Обработка запросов к '/api/users/subscriptions/
         """
-        user = request.user
+        user = self.request.user
         # follow = Follow.objects.filter(user=user)
         queryset = (
             CustomUser.objects
             .filter(author__user=user)
         )
         pages = self.paginate_queryset(queryset)
-        # user_obj = [follow_obj.author.id for follow_obj in follow]
-
-        # recipes_limit = request.GET.get('recipes_limit', None)
-        # if recipes_limit is None:
-        #     queryset = CustomUser.objects.filter(pk__in=user_obj)
-        # limited_recipes = Recipe.objects.filter(
-        #     author=OuterRef('pk')
-        # ).order_by('-created_at')[:recipes_limit]
-        # queryset = (
-        #     CustomUser.objects
-        #     .filter(pk__in=user_obj)
-        #     .prefetch_related(
-        #         Prefetch(
-        #             'recipes',
-        #             queryset=limited_recipes,
-        #             to_attr='limited_recipes'
-        #         )
-        #     )
-        # )
         serializer = FollowSerializer(
             pages,
             many=True,
             context={'request': request}
         )
-        # paginated_queryset = self.paginate_queryset(queryset)
-        # serializer = self.get_serializer(paginated_queryset, many=True)
         return self.get_paginated_response(serializer.data)
 
 
