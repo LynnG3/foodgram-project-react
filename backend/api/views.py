@@ -94,20 +94,18 @@ class CustomUserViewSet(UserViewSet):
         methods=['get', 'post'],
         detail=False,
         permission_classes=[IsAuthenticated],
-        serializer_class=FollowReadSerializer,
     )
     def subscriptions(self, request):
         """Просмотр подписок пользователя.
         Обработка запросов к '/api/users/subscriptions/
         """
         user = self.request.user
-        # follow = Follow.objects.filter(user=user)
         queryset = (
             CustomUser.objects
-            .filter(author__user=user)
+            .filter(follower__user=user)
         )
         pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(
+        serializer = FollowReadSerializer(
             pages,
             many=True,
             context={'request': request}

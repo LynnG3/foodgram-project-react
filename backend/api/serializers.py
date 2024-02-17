@@ -311,9 +311,8 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 
 
 class FollowReadSerializer(serializers.ModelSerializer):
-    """Сериализатор просмотра подписки."""
+    """Сериализатор просмотра подписок текущего пользователя. """
 
-    # recipes = UsersRecipeSerializer(many=True)
     recipes = serializers.SerializerMethodField('get_recipes')
     is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
     recipes_count = serializers.SerializerMethodField('get_recipes_count')
@@ -329,7 +328,6 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'is_subscribed',
             'recipes',
             'recipes_count',
-            'limited_recipes'
         )
 
     def get_recipes(self, obj):
@@ -346,18 +344,16 @@ class FollowReadSerializer(serializers.ModelSerializer):
         )
         return serializer.data
 
-    # def get_is_subscribed(self, obj):
-    #     """Проверка подписки текущего юзера на автора. """
-    #     request = self.context.get('request')
-    #     if request is None or request.user.is_anonymous:
-    #         return False
-    #     return Follow.objects.filter(user=obj.id, author=obj.id).exists()
+    def get_is_subscribed(self, obj):
+        """Проверка подписки текущего юзера на автора. """
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов автора"""
         return obj.recipes.count()
-        # return obj.recipes.all().count()
-        # return Recipe.objects.filter(author=obj.author).count()
 
 
 class FollowSerializer(serializers.ModelSerializer):
