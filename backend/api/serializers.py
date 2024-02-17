@@ -173,7 +173,11 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор создания/изменения/удаления своего рецепта. """
 
-    ingredients = RecipeIngredientSerializer(many=True)
+    # ingredients = RecipeIngredientSerializer(many=True)
+    ingredients = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        many=True
+    )
     image = Base64ImageField()
     # tags = serializers.SlugRelatedField(
     #     many=True, queryset=Tag.objects.all(), slug_field="id"
@@ -250,7 +254,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
                 recipe=recipe,
-                ingredient=ingredient_item.get('ingredient'),
+                # ingredient=ingredient_item.get('ingredient'),
+                ingredient_id=ingredient_item.get('ingredient'),
                 amount=ingredient_item.get('amount'),
             ) for ingredient_item in ingredients
         ])
