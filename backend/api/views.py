@@ -1,6 +1,7 @@
 from django.http import FileResponse
 from django.db.models import OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
@@ -11,7 +12,7 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from api.filters import IngredientSearchFilter, RecipesFilter
+from api.filters import IngredientFilter, RecipesFilter
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (CustomUserGetSerializer, CustomUserSerializer,
                              FavoriteSerializer, FollowReadSerializer,
@@ -191,7 +192,9 @@ class RecipeViewSet(ModelViewSet):
 class IngredientViewSet(ReadOnlyModelViewSet):
     """ Представление ингредиентов. """
 
-    filter_backends = [IngredientSearchFilter]
+    filterset_class = IngredientFilter
+    filter_backends = (DjangoFilterBackend,)
+    pagination_class = None
     search_fields = ['^name']
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
