@@ -315,7 +315,7 @@ class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписки."""
 
     # recipes = UsersRecipeSerializer(many=True)
-    recipes = serializers.SerializerMethodField('get_recipes', many=True)
+    recipes = serializers.SerializerMethodField('get_recipes')
     is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
     recipes_count = serializers.SerializerMethodField('get_recipes_count')
 
