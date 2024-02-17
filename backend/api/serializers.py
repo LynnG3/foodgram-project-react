@@ -347,15 +347,12 @@ class FollowReadSerializer(serializers.ModelSerializer):
         )
         return serializer.data
 
-    def get_is_subscribed(self, obj):
-        """Проверка подписки текущего юзера на автора. """
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
-        # return Follow.objects.filter(
-        #   user=self.context['request'].user, author=obj
-        #   ).exists()
+    # def get_is_subscribed(self, obj):
+    #     """Проверка подписки текущего юзера на автора. """
+    #     request = self.context.get('request')
+    #     if request is None or request.user.is_anonymous:
+    #         return False
+    #     return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов автора"""
