@@ -314,9 +314,8 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписки."""
 
-    recipes = UsersRecipeSerializer(many=True)
-    # recipes = serializers.SerializerMethodField('get_recipes')
-    limited_recipes = serializers.SerializerMethodField('get_windowed_recipes')
+    # recipes = UsersRecipeSerializer(many=True)
+    recipes = serializers.SerializerMethodField('get_recipes', many=True)
     is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
     recipes_count = serializers.SerializerMethodField('get_recipes_count')
 
@@ -333,6 +332,20 @@ class FollowReadSerializer(serializers.ModelSerializer):
             'recipes_count',
             'limited_recipes'
         )
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
+        queryset = obj.recipes.all()
+        if recipes_limit and recipes_limit.isdigit():
+            recipes_limit = int(recipes_limit)
+            queryset = queryset[:recipes_limit]
+        serializer = UsersRecipeSerializer(
+            queryset,
+            many=True,
+            context=self.context
+        )
+        return serializer.data
 
     def get_is_subscribed(self, obj):
         """Проверка подписки текущего юзера на автора. """

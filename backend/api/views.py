@@ -1,5 +1,5 @@
 from django.http import FileResponse
-from django.db.models import OuterRef, Prefetch
+# from django.db.models import OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -95,36 +95,44 @@ class CustomUserViewSet(UserViewSet):
         detail=False,
         permission_classes=[IsAuthenticated],
         serializer_class=FollowReadSerializer,
-        # pagination_class=LimitOffsetPagination
     )
     def subscriptions(self, request):
         """Просмотр подписок пользователя.
         Обработка запросов к '/api/users/subscriptions/
         """
         user = request.user
-        follow = Follow.objects.filter(user=user)
-        user_obj = [follow_obj.author.id for follow_obj in follow]
-
-        recipes_limit = request.GET.get('recipes_limit', None)
-        if recipes_limit is None:
-            queryset = CustomUser.objects.filter(pk__in=user_obj)
-        limited_recipes = Recipe.objects.filter(
-            author=OuterRef('pk')
-        ).order_by('-created_at')[:recipes_limit]
+        # follow = Follow.objects.filter(user=user)
         queryset = (
             CustomUser.objects
-            .filter(pk__in=user_obj)
-            .prefetch_related(
-                Prefetch(
-                    'recipes',
-                    queryset=limited_recipes,
-                    to_attr='limited_recipes'
-                )
-            )
+            .filter(author__user=user)
         )
-        # queryset = CustomUser.objects.filter(pk__in=user_obj)
-        paginated_queryset = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(paginated_queryset, many=True)
+        pages = self.paginate_queryset(queryset)
+        # user_obj = [follow_obj.author.id for follow_obj in follow]
+
+        # recipes_limit = request.GET.get('recipes_limit', None)
+        # if recipes_limit is None:
+        #     queryset = CustomUser.objects.filter(pk__in=user_obj)
+        # limited_recipes = Recipe.objects.filter(
+        #     author=OuterRef('pk')
+        # ).order_by('-created_at')[:recipes_limit]
+        # queryset = (
+        #     CustomUser.objects
+        #     .filter(pk__in=user_obj)
+        #     .prefetch_related(
+        #         Prefetch(
+        #             'recipes',
+        #             queryset=limited_recipes,
+        #             to_attr='limited_recipes'
+        #         )
+        #     )
+        # )
+        serializer = FollowSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
+        # paginated_queryset = self.paginate_queryset(queryset)
+        # serializer = self.get_serializer(paginated_queryset, many=True)
         return self.get_paginated_response(serializer.data)
 
 
@@ -148,7 +156,6 @@ class RecipeViewSet(ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        # if self.request.user.is_authenticated:
         serializer.save(author=self.request.user)
 
     @action(
@@ -183,9 +190,6 @@ class RecipeViewSet(ModelViewSet):
             as_attachment=True,
             filename='Список покупок.txt'
         )
-        # HttpResponse(shopping_itog, content_type='text/plain')
-        # response['Content-Disposition'] = \
-        #     'attachment; filename="Список покупок.txt"'
         return response
 
 

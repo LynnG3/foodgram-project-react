@@ -29,7 +29,6 @@ services:
     command: cp -r /app/build/. /result_build/
     volumes:
       - static:/result_build/
-      # - ./frontend/:/app/result_build/
     depends_on:
       - db
 
