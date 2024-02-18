@@ -13,18 +13,6 @@ class CustomUser(AbstractUser):
         unique=True,
         max_length=254
     )
-    # # first_name = models.CharField(
-    # #     max_length=150,
-    # #     blank=False
-    # # )
-    # # last_name = models.CharField(
-    # #     max_length=150,
-    # #     blank=False
-    # # )
-    # is_subscribed = models.BooleanField(
-    #     'Вы подписаны',
-    #     default=False
-    # )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']

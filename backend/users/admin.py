@@ -1,16 +1,31 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
-from . import models
-
-# from django.contrib.admin import register
-
-# @register(models.CustomUser)
-# class UserAdmin(admin.ModelAdmin):
-#     list_display = ("id", "username", "first_name", "last_name", "email")
-#     search_fields = ("email", "username")
-#     list_filter = ("email", "username")
-#     empty_value_display = "-пусто-"
+from users.models import CustomUser, Follow
 
 
-admin.site.register(models.CustomUser)
-admin.site.register(models.Follow)
+@admin.register(CustomUser)
+class UserAdmin(UserAdmin):
+    """Администрирование пользователей."""
+
+    list_display = (
+        'username',
+        'first_name',
+        'last_name',
+        'email',
+    )
+    list_filter = ('username', 'email',)
+    search_fields = ('username', 'email',)
+    ordering = ('username',)
+
+
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    """Администрирование подписок."""
+
+    list_display = (
+        'user',
+        'author',
+    )
+    list_filter = ('user', 'author',)
+    search_fields = ('user__username', 'author__username',)

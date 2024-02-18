@@ -14,7 +14,7 @@ from users.models import CustomUser, Follow
 
 
 class CustomUserSerializer(UserCreateSerializer):
-    """Сериализатор для создания/редактирования/удаления пользователя"""
+    """Сериализатор создания/редактирования/удаления пользователя. """
 
     email = serializers.EmailField()
     username = serializers.CharField(required=True, max_length=150)
@@ -43,7 +43,7 @@ class CustomUserSerializer(UserCreateSerializer):
 
 
 class CustomUserGetSerializer(UserSerializer):
-    """Сериализатор для просмотра пользователя и списка пользователей. """
+    """Сериализатор для просмотра инфо пользователя. """
 
     is_subscribed = SerializerMethodField(read_only=True)
 
@@ -67,7 +67,7 @@ class CustomUserGetSerializer(UserSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
-    """Сериализатор сменя пароля. """
+    """Сериализатор смены пароля. """
 
     new_password = serializers.CharField(required=True)
     current_password = serializers.CharField(required=True)
@@ -174,18 +174,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор создания/изменения/удаления своего рецепта. """
 
     ingredients = RecipeIngredientSerializer(many=True)
-    # ingredients = serializers.PrimaryKeyRelatedField(
-    #     queryset=Ingredient.objects.all(),
-    #     many=True
-    # )
     image = Base64ImageField()
     tags = serializers.SlugRelatedField(
         many=True, queryset=Tag.objects.all(), slug_field="id"
     )
-    # tags = serializers.PrimaryKeyRelatedField(
-    #     queryset=Tag.objects.all(),
-    #     many=True
-    # )
     author = CustomUserSerializer(read_only=True)
     cooking_time = serializers.IntegerField(min_value=1)
     is_favorited = serializers.SerializerMethodField(read_only=True)
@@ -271,7 +263,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        # """Редактирование рецепта. """
+        """Редактирование рецепта. """
         instance.image = validated_data.get("image", instance.image)
         instance.name = validated_data.get("name", instance.name)
         instance.text = validated_data.get("text", instance.text)
@@ -290,7 +282,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        """Определяет какой сериализатор будет использоваться для чтения."""
+        """Определяет сериализатор, используемый для чтения. """
         return RecipeReadSerializer(
             instance,
             context={'request':
@@ -299,8 +291,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class UsersRecipeSerializer(serializers.ModelSerializer):
-    """Cериализатор рецептов автора на чтение
-    для подписок, избранного и корзины"""
+    """Cериализатор чтения рецептов
+    для подписок, избранного и корзины. """
 
     image = Base64ImageField()
 
@@ -331,6 +323,7 @@ class FollowReadSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
+        """Получение рецептов автора. """
         request = self.context.get('request')
         recipes_limit = request.query_params.get('recipes_limit')
         queryset = obj.recipes.all()
@@ -387,7 +380,7 @@ class FollowSerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
-        """Определяет какой сериализатор будет использоваться для чтения."""
+        """Определяет сериализатор, используемый для чтения."""
         return FollowReadSerializer(
             instance.author,
             context={'request':
