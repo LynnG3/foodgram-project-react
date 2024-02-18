@@ -115,7 +115,7 @@ class CustomUserViewSet(UserViewSet):
 
 class RecipeViewSet(ModelViewSet):
     """Получение списка рецептов/отдельного рецепта,
-    создание, редактирование, удаление своего рецепта. """
+    создание, редактирование и удаление своего рецепта. """
 
     queryset = Recipe.objects.all()
     permission_classes = [IsOwnerOrReadOnly]
