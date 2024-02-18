@@ -99,7 +99,7 @@ class CustomUserViewSet(UserViewSet):
         """Просмотр подписок пользователя.
         Обработка запросов к '/api/users/subscriptions/
         """
-        user = self.request.user
+        user = request.user
         queryset = (
             CustomUser.objects
             .filter(author__user=user)
