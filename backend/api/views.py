@@ -102,7 +102,7 @@ class CustomUserViewSet(UserViewSet):
         user = self.request.user
         queryset = (
             CustomUser.objects
-            .filter(follower__user=user)
+            .filter(author__user=user)
         )
         pages = self.paginate_queryset(queryset)
         serializer = FollowReadSerializer(
