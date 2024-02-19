@@ -1,5 +1,5 @@
+from django.db.models import Sum
 from django.http import FileResponse
-# from django.db.models import OuterRef, Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -51,7 +51,7 @@ class CustomUserViewSet(UserViewSet):
         return super().get_permissions()
 
     @action(
-        methods=['get', 'delete', 'post'],
+        methods=['delete', 'post'],
         detail=True,
         permission_classes=[IsAuthenticated],
     )
@@ -66,11 +66,7 @@ class CustomUserViewSet(UserViewSet):
             'user': user.id,
             'author': author.id,
         }
-        if request.method == "GET" or request.method == "POST":
-            if follow.exists():
-                return Response(
-                    "Вы уже подписаны", status=status.HTTP_400_BAD_REQUEST
-                )
+        if request.method == 'POST':
             serializer = FollowSerializer(
                 data=data,
                 context={'request': request}
@@ -78,17 +74,16 @@ class CustomUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        elif request.method == "DELETE":
-            if follow:
-                follow.delete()
-                return Response(
-                    f"Подписка на {author.username} отменена",
-                    status=status.HTTP_204_NO_CONTENT
-                )
+        if follow.exists():
+            follow.delete()
             return Response(
-                "Такой подписки не существует",
-                status=status.HTTP_400_BAD_REQUEST
+                f'Подписка на {author.username} отменена',
+                status=status.HTTP_204_NO_CONTENT
             )
+        return Response(
+            'Такой подписки не существует',
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         methods=['get', 'post'],
@@ -128,11 +123,6 @@ class RecipeViewSet(ModelViewSet):
             return RecipeCreateUpdateSerializer
         return RecipeReadSerializer
 
-    def create(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response(status=401)
-        return super().create(request, *args, **kwargs)
-
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -143,25 +133,20 @@ class RecipeViewSet(ModelViewSet):
     )
     def download_shopping_cart(self, request):
         """Подсчет ингредиентов и скачивание списка покупок. """
-        shopping_result = {}
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user
-        ).values_list('ingredient__name',
-                      'ingredient__measurement_unit',
-                      'amount')
+        ).values_list(
+            'ingredient__name',
+            'ingredient__measurement_unit',
+        ).annotate(amount=Sum('amount'))
+        shopping_result = []
         for ingredient in ingredients:
-            name = ingredient[0]
-            if name not in shopping_result:
-                shopping_result[name] = {
-                    'measurement_unit': ingredient[1],
-                    'amount': ingredient[2],
-                }
-            else:
-                shopping_result[name]['amount'] += ingredient[2]
-        shopping_itog = (
-            f"{name} - {value['amount']} " f"{value['measurement_unit']}\n"
-            for name, value in shopping_result.items()
-        )
+            shopping_result.append(
+                f'{ingredient["ingredient__name"]} - '
+                f'{ingredient["amount"]} '
+                f'({ingredient["ingredient__measurement_unit"]})'
+            )
+        shopping_itog = '\n'.join(shopping_result)
         response = FileResponse(
             shopping_itog,
             content_type='text/plain',
@@ -202,36 +187,30 @@ class BaseItemFavoriteShopingCartViewSet(ModelViewSet):
     model = None
     serializer_class = None
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
         """Создание списка рецептов . """
         item_id = self.kwargs['id']
-        try:
-            item = Recipe.objects.get(id=item_id)
-        except Recipe.DoesNotExist:
-            raise RecipeNotFoundException
-
+        item = get_object_or_404(Recipe.objects.get(id=item_id))
         user = request.user
         if self.model.objects.filter(user=user, recipe=item).exists():
             return Response(
                 'Рецепт уже добавлен ',
                 status=status.HTTP_400_BAD_REQUEST)
 
-        newItem = self.model(user=user, recipe=item)
-        newItem.save()
+        new_item = self.model(user=user, recipe=item)
+        new_item.save()
         serializer = self.serializer_class(
-            newItem, context={'request': request}
+            new_item, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, **kwargs):
         """Удаление рецепта из списка . """
         item_id = kwargs['id']
         user = request.user
         item = get_object_or_404(Recipe, id=item_id)
-
         if not self.model.objects.filter(user=user, recipe=item).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
         self.model.objects.get(user=user, recipe=item).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

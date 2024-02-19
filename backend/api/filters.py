@@ -20,21 +20,21 @@ class RecipesFilter(FilterSet):
     тегам"""
     author = filters.ModelChoiceFilter(queryset=CustomUser.objects.all())
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
-    is_favorited = filters.BooleanFilter(method="filter_is_favorited")
+    is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
-        method="filter_is_in_shopping_cart"
+        method='filter_is_in_shopping_cart'
     )
 
     class Meta:
         model = Recipe
         fields = ["author", "tags"]
 
-    def filter_is_favorited(self, queryset, name, value):
+    def filter_is_favorited(self, queryset, value):
         if value:
             return queryset.filter(favorite__user=self.request.user.id)
         return queryset.objects.all()
 
-    def filter_is_in_shopping_cart(self, queryset, name, value):
+    def filter_is_in_shopping_cart(self, queryset, value):
         if value:
             return queryset.filter(shopping_cart__user=self.request.user.id)
         return queryset.objects.all()
