@@ -3,13 +3,6 @@ from django.contrib import admin
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
 
-# admin.site.register(Recipe)
-# admin.site.register(Ingredient)
-# admin.site.register(RecipeIngredient)
-# admin.site.register(Favorite)
-# admin.site.register(Tag)
-# admin.site.register(ShoppingCart)
-
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
@@ -65,12 +58,15 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Отображение ингредиентов')
     def display_ingredients(self, recipe):
-        return ', '.join([
-            ingredients.name for ingredients in recipe.ingredients.all()])
+        return recipe.ingredients.values_list(
+            'name', flat=True
+        ).order_by('name')
 
     @admin.display(description='Теги')
     def display_tags(self, recipe):
-        return ', '.join([tags.name for tags in recipe.tags.all()])
+        return recipe.tags.values_list(
+            'name', flat=True
+        ).order_by('name')
 
 
 @admin.register(ShoppingCart)

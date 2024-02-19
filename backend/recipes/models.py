@@ -11,6 +11,7 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
+    """Модель ингредиента. """
 
     name = models.CharField(
         max_length=200,
@@ -30,8 +31,8 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    """Тэги."""
-    # Отображается в UI
+    """Модель тега. """
+
     name = models.CharField(
         max_length=200, verbose_name='Название', unique=True
     )
@@ -44,6 +45,9 @@ class Tag(models.Model):
 
 
 class RecipeQuerySet(models.QuerySet):
+    """Вспомогательная модель отображения
+    отметки "в избранном" для списка рецептов.
+    """
 
     def add_user_annotations(self, user_id: Optional[int]):
         return self.annotate(
@@ -56,6 +60,8 @@ class RecipeQuerySet(models.QuerySet):
 
 
 class Recipe(models.Model):
+    """Модель рецепта. """
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -89,7 +95,7 @@ class Recipe(models.Model):
         ],
     )
     tags = models.ManyToManyField(
-        Tag, related_name="recipes"
+        Tag, related_name='recipes'
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -109,9 +115,11 @@ class Recipe(models.Model):
 
 
 class TagsInRecipe(models.Model):
+    """Модель тега в рецепте. """
 
     tag = models.ForeignKey(
-        Tag, verbose_name="Тег в рецепте", on_delete=models.CASCADE
+        Tag,
+        on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -119,11 +127,18 @@ class TagsInRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name = "Теги в рецепте"
+        constraints = [
+            models.UniqueConstraint(
+                fields=('tag', 'recipe'), name='unique_tag_recipe'
+            )
+        ]
+        verbose_name = 'Теги в рецепте'
         verbose_name_plural = verbose_name
 
 
 class RecipeIngredient(models.Model):
+    """Модель ингредиента в рецепте. """
+
     amount = models.PositiveIntegerField(
         verbose_name='Количество'
     )
@@ -142,43 +157,18 @@ class RecipeIngredient(models.Model):
         return f'{self.ingredient} в {self.recipe}'
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('ingredient', 'recipe'),
+                name='unique_recipe_ingredient'
+            )
+        ]
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
 
 
-class Favorite(models.Model):
-    """Модель избранных рецептов. """
-
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        verbose_name='Пользователь'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        null=True,
-        default=None,
-        verbose_name='Рецепт'
-    )
-
-    def __str__(self):
-        return f'Избранный {self.recipe} у {self.user}'
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='unique_favorite_user_recipe'
-            )
-        ]
-        default_related_name = 'favorite'
-        verbose_name = 'Объект избранного'
-        verbose_name_plural = 'Объекты избранного'
-
-
-class ShoppingCart(models.Model):
-    """Модель Список покупок"""
+class AbstractFavoriteShopping(models.Model):
+    """Абстрактная модель атрибутов для избранного и корзины покупок. """
 
     user = models.ForeignKey(
         CustomUser,
@@ -194,14 +184,33 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'), name='unique_user_recipe_list'
+            )
+        ]
+        abstract = True
+
+
+class Favorite(AbstractFavoriteShopping):
+    """Модель избранных рецептов. """
+
+    class Meta:
+        default_related_name = 'favorite'
+        verbose_name = 'Объект избранного'
+        verbose_name_plural = 'Объекты избранного'
+
+    def __str__(self):
+        return f'Избранный {self.recipe} у {self.user}'
+
+
+class ShoppingCart(AbstractFavoriteShopping):
+    """Модель списка покупок. """
+
+    class Meta:
         default_related_name = 'shopping_cart'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'recipe'), name='unique_recipe_list'
-            )
-        ]
 
     def __str__(self):
-        return f"Список покупок пользователя {self.user.username}"
+        return f'Список покупок пользователя {self.user.username}'
