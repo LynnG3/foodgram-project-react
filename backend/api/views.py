@@ -5,10 +5,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (AllowAny, IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -175,17 +173,11 @@ class TagViewSet(ReadOnlyModelViewSet):
     pagination_class = None
 
 
-class RecipeNotFoundException(APIException):
-    """Исключение для несуществующего рецепта. """
-
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = 'Такого рецепта не нашлось.'
-    default_code = 'recipe_not_found'
-
-
 class BaseItemFavoriteShopingCartViewSet(ModelViewSet):
     model = None
     serializer_class = None
+    pagination_class = CommonPagination
+    permission_classes = [IsAuthenticated]
 
     def create(self, request):
         """Создание списка рецептов . """
@@ -215,7 +207,7 @@ class BaseItemFavoriteShopingCartViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FavoriteViewSet(ModelViewSet):
+class FavoriteViewSet(BaseItemFavoriteShopingCartViewSet):
     """Cписок избранных рецептов
     Добавление / удаление рецепта из списка.
     """
@@ -223,9 +215,7 @@ class FavoriteViewSet(ModelViewSet):
     model = Favorite
     serializer_class = FavoriteSerializer
     item_type = 'favorites'
-    serializer_class = FavoriteSerializer
     queryset = Favorite.objects.all()
-    permission_classes = [IsAuthenticated]
 
 
 class ShoppingCartViewSet(BaseItemFavoriteShopingCartViewSet):
@@ -236,7 +226,5 @@ class ShoppingCartViewSet(BaseItemFavoriteShopingCartViewSet):
 
     model = ShoppingCart
     serializer_class = ShoppingCartSerializer
-    item_type = 'shopping cart'
-    pagination_class = CommonPagination
+    item_type = 'shopping_cart'
     queryset = ShoppingCart.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly]
