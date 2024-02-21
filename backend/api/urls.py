@@ -20,12 +20,12 @@ urlpatterns = [
     url(r'', include(router_v1.urls)),
     path(
         'recipes/<int:id>/favorite/',
-        FavoriteViewSet.as_view({"post": "create", "delete": "delete"}),
-        name="favorite",
+        FavoriteViewSet.as_view({'post': 'create', 'delete': 'delete'}),
+        name='favorite',
     ),
     path(
         'recipes/<int:id>/shopping_cart/',
-        ShoppingCartViewSet.as_view({"post": "create", "delete": "delete"}),
-        name="shopping_cart",
+        ShoppingCartViewSet.as_view({'post': 'create', 'delete': 'delete'}),
+        name='shopping_cart',
     ),
 ]

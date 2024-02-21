@@ -6,8 +6,6 @@ TestSuperuser@yandex.ru
 пароль:
 BonAppeti
 
-
-
 ПЕРЕДЕЛАТЬ ПОД ТЕКУЩИЙ ПРОЕКТ
 
 
