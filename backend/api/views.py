@@ -214,7 +214,6 @@ class FavoriteViewSet(BaseItemFavoriteShopingCartViewSet):
 
     model = Favorite
     serializer_class = FavoriteSerializer
-    item_type = 'favorites'
     queryset = Favorite.objects.all()
 
 
@@ -226,5 +225,4 @@ class ShoppingCartViewSet(BaseItemFavoriteShopingCartViewSet):
 
     model = ShoppingCart
     serializer_class = ShoppingCartSerializer
-    item_type = 'shopping_cart'
     queryset = ShoppingCart.objects.all()
