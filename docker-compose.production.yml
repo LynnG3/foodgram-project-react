@@ -4,7 +4,6 @@ volumes:
   pg_data:
   static:
   media:
-  redoc:
 
 services:
   db:
@@ -18,27 +17,25 @@ services:
     env_file: .env
     volumes:
       - static:/static_backend/
-      - media:/app/media/
-      - redoc:/app/docs/
+      - media:/media/
     depends_on:
       - db
   
   frontend:
     image: linorra/infra_frontend-1
     env_file: .env
-    command: cp -r /app/build/. /result_build/
+    command: cp -r /app/build/. /static/
     volumes:
-      - static:/result_build/
-    depends_on:
-      - db
+      - ./frontend/:/app/result_build/
+      - static:/static
+
 
   gateway:
     image: linorra/infra_gateway-1
     env_file: .env
     volumes:
-      - static:/staticfiles/
-      - media:/app/media/
-      - ./docs/:/usr/share/nginx/html/api/docs/
+      - static:/static
+      - media:/media/
     ports:
       - 8000:80
     depends_on:
