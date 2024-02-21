@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure123456')
@@ -123,13 +124,13 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 if DEBUG:
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
 else:
     MEDIA_ROOT = '/media/'
 
 STATIC_URL = '/static/'
 if DEBUG:
-    STATICFILES_DIRS = (os.path.join(BASE_DIR, 'data'),)
+    STATICFILES_DIRS = os.path.join(PROJECT_DIR, 'static')
 else:
     STATIC_ROOT = BASE_DIR / 'collected_static'
 
