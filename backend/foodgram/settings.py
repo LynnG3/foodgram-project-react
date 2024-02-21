@@ -123,14 +123,12 @@ REST_FRAMEWORK = {
 }
 
 MEDIA_URL = '/media/'
-if DEBUG:
-    MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
-else:
+if DEBUG is False:
     MEDIA_ROOT = '/media/'
 
 STATIC_URL = '/static/'
 if DEBUG:
-    STATICFILES_DIRS = os.path.join(PROJECT_DIR, 'static')
+    STATICFILES_DIRS = os.path.join(BASE_DIR, 'static')
 else:
     STATIC_ROOT = BASE_DIR / 'collected_static'
 
