@@ -129,7 +129,7 @@ else:
 
 STATIC_URL = '/static/'
 if DEBUG:
-    STATICFILES_DIRS = (os.path.join(BASE_DIR, 'data'),)
+    STATICFILES_DIRS = os.path.join(BASE_DIR, 'data')
 else:
     STATIC_ROOT = BASE_DIR / 'collected_static'
 
