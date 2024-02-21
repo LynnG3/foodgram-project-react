@@ -1,6 +1,11 @@
 # praktikum_new_diplom
+
 https://pollyfoodgram.serveblog.net
-Суперюзер: TestSuperuser@yandex.ru пароль: BonAppeti
+Суперюзер:
+TestSuperuser@yandex.ru
+пароль:
+BonAppeti
+
 ПЕРЕДЕЛАТЬ ПОД ТЕКУЩИЙ ПРОЕКТ
 
 
