@@ -4,6 +4,7 @@ volumes:
   pg_data:
   static:
   media:
+  redoc:
 
 services:
   db:
@@ -18,6 +19,7 @@ services:
     volumes:
       - static:/static_backend/
       - media:/app/media/
+      - redoc:/app/docs/
     depends_on:
       - db
   
@@ -35,6 +37,8 @@ services:
     volumes:
       - static:/staticfiles/
       - media:/app/media/
+      - ./docs/:/usr/share/nginx/html/api/docs/
+      - redoc:/usr/share/nginx/html/api/docs/
     ports:
       - 8000:80
     depends_on:
