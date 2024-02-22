@@ -100,7 +100,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -125,7 +125,10 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     """Получение рецепта."""
 
     author = CustomUserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(read_only=True, many=True)
+    ingredients = RecipeIngredientSerializer(
+        source='recipeingredient_set',
+        many=True
+    )
     tags = TagSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -195,7 +198,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             )
         data['image'] = image
         required_field = ['name']
-        if required_field not in data:
+        if not required_field:
             raise serializers.ValidationError(
                 {'Добавьте название рецепта'}
             )
@@ -230,6 +233,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_ingredients_in_recipe(ingredients, recipe):
+        """Создание ингредиента в рецепте. """
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
                 recipe=recipe,
@@ -252,13 +256,13 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Редактирование рецепта. """
         tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('ingredients')
         instance.tags.clear()
         instance.tags.set(tags)
         instance.ingredients.clear()
-        self.create_ingredients_recipes(
+        self.create_ingredients_in_recipe(
             recipe=instance,
-            ingredients_data=ingredients_data,
+            ingredients=ingredients,
         )
         instance = super().update(instance, validated_data)
         return instance
@@ -305,7 +309,8 @@ class FollowReadSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         """Получение рецептов автора. """
-        recipes_limit = self.request.query_params.get('recipes_limit')
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
         queryset = obj.recipes.all()
         if recipes_limit and recipes_limit.isdigit():
             recipes_limit = int(recipes_limit)
@@ -319,7 +324,8 @@ class FollowReadSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Проверка подписки текущего юзера на автора. """
-        if self.request is None or self.request.user.is_anonymous:
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 

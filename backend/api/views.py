@@ -6,7 +6,9 @@ from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (AllowAny, IsAuthenticated)
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -112,7 +114,7 @@ class RecipeViewSet(ModelViewSet):
     Обрабатывает запросы к /api/recipes/ и /api/recipes/{id}/"""
 
     queryset = Recipe.objects.all()
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
     pagination_class = CommonPagination
     filterset_class = RecipesFilter
 
@@ -140,9 +142,12 @@ class RecipeViewSet(ModelViewSet):
         shopping_result = []
         for ingredient in ingredients:
             shopping_result.append(
-                f'{ingredient["ingredient__name"]} - '
-                f'{ingredient["amount"]} '
-                f'({ingredient["ingredient__measurement_unit"]})'
+                f'{ingredient[0]} - '
+                f'{ingredient[2]} '
+                f'({ingredient[1]})'
+                # f'{ingredient["ingredient__name"]} - '
+                # f'{ingredient["amount"]} '
+                # f'({ingredient["ingredient__measurement_unit"]})'
             )
         shopping_itog = '\n'.join(shopping_result)
         response = FileResponse(
@@ -177,16 +182,15 @@ class BaseItemFavoriteShopingCartViewSet(ModelViewSet):
     model = None
     serializer_class = None
     pagination_class = CommonPagination
-    permission_classes = [IsAuthenticated]
 
-    def create(self, request):
+    def create(self, request, **kwargs):
         """Создание списка рецептов . """
-        item_id = self.kwargs['id']
-        item = get_object_or_404(Recipe.objects.get(id=item_id))
+        item_id = kwargs.get('id')
+        item = get_object_or_404(Recipe, id=item_id)
         user = request.user
         if self.model.objects.filter(user=user, recipe=item).exists():
             return Response(
-                'Рецепт уже добавлен ',
+                'Рецепт уже добавлен',
                 status=status.HTTP_400_BAD_REQUEST)
 
         new_item = self.model(user=user, recipe=item)
@@ -215,6 +219,7 @@ class FavoriteViewSet(BaseItemFavoriteShopingCartViewSet):
     model = Favorite
     serializer_class = FavoriteSerializer
     queryset = Favorite.objects.all()
+    permission_classes = [IsAuthenticated]
 
 
 class ShoppingCartViewSet(BaseItemFavoriteShopingCartViewSet):
@@ -226,3 +231,4 @@ class ShoppingCartViewSet(BaseItemFavoriteShopingCartViewSet):
     model = ShoppingCart
     serializer_class = ShoppingCartSerializer
     queryset = ShoppingCart.objects.all()
+    permission_classes = [IsAuthenticated]
