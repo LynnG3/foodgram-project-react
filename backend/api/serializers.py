@@ -45,7 +45,7 @@ class CustomUserSerializer(UserCreateSerializer):
 class CustomUserGetSerializer(UserSerializer):
     """Сериализатор для просмотра инфо пользователя. """
 
-    is_subscribed = SerializerMethodField(read_only=True)
+    is_subscribed = SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -60,10 +60,11 @@ class CustomUserGetSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         """Проверка подписки пользователя"""
-        user = self.context.get("request").user
-        if user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=user, author=obj.id).exists()
+        request = self.context.get('request')
+        return (
+            request and request.user.is_authenticated
+            and request.user.follower.filter(author=obj).exists()
+        )
 
 
 class PasswordSerializer(serializers.Serializer):
@@ -290,9 +291,8 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписок текущего пользователя. """
 
-    recipes = serializers.SerializerMethodField('get_recipes')
-    is_subscribed = serializers.SerializerMethodField('get_is_subscribed')
-    recipes_count = serializers.SerializerMethodField('get_recipes_count')
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -321,13 +321,6 @@ class FollowReadSerializer(serializers.ModelSerializer):
             context=self.context
         )
         return serializer.data
-
-    def get_is_subscribed(self, obj):
-        """Проверка подписки текущего юзера на автора. """
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
     def get_recipes_count(self, obj):
         """Получение количества рецептов автора"""

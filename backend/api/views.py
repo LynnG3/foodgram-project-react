@@ -145,9 +145,6 @@ class RecipeViewSet(ModelViewSet):
                 f'{ingredient[0]} - '
                 f'{ingredient[2]} '
                 f'({ingredient[1]})'
-                # f'{ingredient["ingredient__name"]} - '
-                # f'{ingredient["amount"]} '
-                # f'({ingredient["ingredient__measurement_unit"]})'
             )
         shopping_itog = '\n'.join(shopping_result)
         response = FileResponse(

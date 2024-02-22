@@ -24,17 +24,16 @@ services:
   frontend:
     image: linorra/infra_frontend-1
     env_file: .env
-    command: cp -r /app/build/. /static/
+    command: cp -r /app/build/. /result_build/
     volumes:
-      - ./frontend/:/app/result_build/
-      - static:/static/
+      - static:/result_build/
 
 
   gateway:
     image: linorra/infra_gateway-1
     env_file: .env
     volumes:
-      - static:/static/
+      - static:/staticfiles/
       - media:/app/media/
     ports:
       - 8000:80
