@@ -17,7 +17,7 @@ services:
     env_file: .env
     volumes:
       - static:/static_backend/
-      - media:/media/
+      - media:/app/media/
     depends_on:
       - db
   
@@ -27,15 +27,15 @@ services:
     command: cp -r /app/build/. /static/
     volumes:
       - ./frontend/:/app/result_build/
-      - static:/static
+      - static:/static/
 
 
   gateway:
     image: linorra/infra_gateway-1
     env_file: .env
     volumes:
-      - static:/static
-      - media:/media/
+      - static:/static/
+      - media:/app/media/
     ports:
       - 8000:80
     depends_on:
