@@ -17,7 +17,7 @@ services:
     image: linorra/infra_backend-1
     env_file: .env
     volumes:
-      - static:/app/collected_static/
+      - static:/backend_static/
       - media:/app/media/
       - redoc:/app/docs/
     depends_on:
@@ -28,7 +28,7 @@ services:
     env_file: .env
     command: cp -r /app/build/. /result_build/
     volumes:
-      - static:/app/result_build/
+      - static:/result_build/
 
 
   gateway:
