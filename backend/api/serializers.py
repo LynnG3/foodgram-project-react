@@ -294,7 +294,12 @@ class FollowReadSerializer(serializers.ModelSerializer, SubscriptionMixin):
     class Meta:
         model = CustomUser
         fields = (
-            *CustomUserGetSerializer.Meta.fields,
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'is_subscribed',
             'recipes',
             'recipes_count'
         )
