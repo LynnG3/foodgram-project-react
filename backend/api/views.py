@@ -74,24 +74,15 @@ class CustomUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # if follow.exists():
-        #     follow.delete()
-        #     return Response(
-        #         f'Подписка на {author.username} отменена',
-        #         status=status.HTTP_204_NO_CONTENT
-        #     )
-        # return Response(
-        #     'Такой подписки не существует',
-        #     status=status.HTTP_400_BAD_REQUEST
-        if not Follow:
+        if follow.exists():
+            follow.delete()
             return Response(
-                'Такой подписки не существует',
-                status=status.HTTP_400_BAD_REQUEST
+                f'Подписка на {author.username} отменена',
+                status=status.HTTP_204_NO_CONTENT
             )
-        follow.delete()
         return Response(
-            f'Подписка на {author.username} отменена',
-            status=status.HTTP_204_NO_CONTENT
+            'Такой подписки не существует',
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     @action(
