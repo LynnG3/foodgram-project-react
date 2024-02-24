@@ -38,6 +38,7 @@ services:
       - static:/staticfiles/
       - media:/app/media/
       - ./docs/:/usr/share/nginx/html/api/docs/
+      - redoc:/usr/share/nginx/html/api/docs/
     ports:
       - 8000:80
     depends_on:
