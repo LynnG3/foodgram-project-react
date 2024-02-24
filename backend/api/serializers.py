@@ -42,7 +42,16 @@ class CustomUserSerializer(UserCreateSerializer):
         return username
 
 
-class CustomUserGetSerializer(UserSerializer):
+class SubscriptionMixin:
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=request.user, author=obj.id).exists()
+
+
+class CustomUserGetSerializer(UserSerializer, SubscriptionMixin):
     """Сериализатор для просмотра инфо пользователя. """
 
     is_subscribed = SerializerMethodField()
@@ -57,13 +66,6 @@ class CustomUserGetSerializer(UserSerializer):
             'last_name',
             'is_subscribed'
         )
-
-    def get_is_subscribed(self, obj):
-        """Проверка подписки текущего юзера на автора. """
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
 
 class PasswordSerializer(serializers.Serializer):
@@ -282,9 +284,10 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FollowReadSerializer(serializers.ModelSerializer):
+class FollowReadSerializer(serializers.ModelSerializer, SubscriptionMixin):
     """Сериализатор просмотра подписок текущего пользователя. """
 
+    is_subscribed = SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
