@@ -45,6 +45,8 @@ class CustomUserSerializer(UserCreateSerializer):
 class CustomUserGetSerializer(UserSerializer):
     """Сериализатор для просмотра инфо пользователя. """
 
+    is_subscribed = SerializerMethodField()
+
     class Meta:
         model = CustomUser
         fields = (
@@ -53,7 +55,15 @@ class CustomUserGetSerializer(UserSerializer):
             'email',
             'first_name',
             'last_name',
+            'is_subscribed'
         )
+
+    def get_is_subscribed(self, obj):
+        """Проверка подписки текущего юзера на автора. """
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
 
 class PasswordSerializer(serializers.Serializer):
@@ -187,11 +197,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 {'Добавьте фото'}
             )
         data['image'] = image
-        required_field = ['name']
-        if not required_field:
-            raise serializers.ValidationError(
-                {'Добавьте название рецепта'}
-            )
         ingredients = data.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError(
@@ -280,29 +285,16 @@ class UsersRecipeSerializer(serializers.ModelSerializer):
 class FollowReadSerializer(serializers.ModelSerializer):
     """Сериализатор просмотра подписок текущего пользователя. """
 
-    is_subscribed = SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
+            *CustomUserGetSerializer.Meta.fields,
             'recipes',
-            'recipes_count',
+            'recipes_count'
         )
-
-    def get_is_subscribed(self, obj):
-        """Проверка подписки текущего юзера на автора. """
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=obj.id, author=obj.id).exists()
 
     def get_recipes(self, obj):
         """Получение рецептов автора. """

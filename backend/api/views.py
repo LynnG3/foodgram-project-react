@@ -138,7 +138,7 @@ class RecipeViewSet(ModelViewSet):
         ).values_list(
             'ingredient__name',
             'ingredient__measurement_unit',
-        ).annotate(amount=Sum('amount'))
+        ).annotate(total=Sum('amount'))
         shopping_result = []
         for ingredient in ingredients:
             shopping_result.append(
@@ -185,11 +185,6 @@ class BaseItemFavoriteShopingCartViewSet(ModelViewSet):
         item_id = kwargs.get('id')
         item = get_object_or_404(Recipe, id=item_id)
         user = request.user
-        if self.model.objects.filter(user=user, recipe=item).exists():
-            return Response(
-                'Рецепт уже добавлен',
-                status=status.HTTP_400_BAD_REQUEST)
-
         new_item = self.model(user=user, recipe=item)
         new_item.save()
         serializer = self.serializer_class(

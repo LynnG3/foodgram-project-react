@@ -153,9 +153,6 @@ class RecipeIngredient(models.Model):
         verbose_name='Рецепт'
     )
 
-    def __str__(self):
-        return f'{self.ingredient} в {self.recipe}'
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -165,6 +162,9 @@ class RecipeIngredient(models.Model):
         ]
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
+
+    def __str__(self):
+        return f'{self.ingredient} в {self.recipe}'
 
 
 class AbstractFavoriteShopping(models.Model):
